@@ -25,6 +25,7 @@ class Facture(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
     categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE)
     paye = models.BooleanField(default=False, verbose_name="Payée")
+    # ADD TAX & TTC
 
     def __str__(self):
         return self.numero
