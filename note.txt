@@ -1,0 +1,6 @@
+python -m django startproject gestion_factures . // pour créer un nouveau projet django
+
+python manage.py runserver // pour lancer le serveur de développement
+
+python manage.py migrate // pour appliquer les migrations
+python manage.py makemigrations // pour créer les migrations

@@ -1,0 +1,20 @@
+Créer et initialiser votre premier projet Django et lancer le. Une fois que vous arrivez à afficher l’
+ écran de base de Django sur
+http://localhost:8000 vous pouvez avancer !
+ Créer le modèle de données, avec son(ses) formulaires associés pour représenter une facture ainsi
+que des catégories de factures. Puis développer quatre vues pour :
+ a. la création
+ b. la modification
+ c. la suppression
+ d. l’affichage d’une facture
+ e. mais aussi l’affiche de toutes les factures
+
+ Ajouter un modèle de données pour représenter un client et modifier le modèle des Factures
+précédents réaliser pour pouvoir lié une facture à un client
+ Ajouter à votre modèle de données Facture un champs pour indiquer si la facture a été payé, ou
+pas. Pensez à mettre à jour vos vues !
+ Modifier la vue qui affiche l’ensemble des Facture pour y ajouter un filtre : je dois pouvoir afficher
+toutes les factures lié à un client
+ Si la facture n’est pas attaché à une catégorie lors de sa création (ou modification), votre projet doit
+l’assigner à la catégorie “Autres” et si cette catégorie n’existe pas, elle devra automatiquement être
+créée.

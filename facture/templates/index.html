@@ -1,0 +1,5 @@
+{{ messages }} {% for message in messages %}
+<p>Contenu : {{ message.content }}</p>
+<p>Utilisateur : {{ message.username }}</p>
+<p>Date : {{ message.created_at }}</p>
+{% endfor %}
