@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Modifier le Client - {{ client.nom }}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    </head>
+    <body class="bg-light">
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-warning text-dark">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="mb-0"><i class="fas fa-edit"></i> Modifier le Client</h3>
+                                <div>
+                                    <a href="{% url 'index' %}" class="btn btn-outline-dark btn-sm">
+                                        <i class="fas fa-home"></i> Accueil
+                                    </a>
+                                    <a href="{% url 'detail_client' client.pk %}" class="btn btn-outline-dark btn-sm">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+
+                                <div class="mb-3">
+                                    <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user"></i> Nom du client *
+                                    </label>
+                                    {{ form.nom }} {% if form.nom.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.nom.errors %} {{ error }} {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        <i class="fas fa-envelope"></i> Email
+                                    </label>
+                                    {{ form.email }} {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %} {{ error }} {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                        <i class="fas fa-phone"></i> Téléphone
+                                    </label>
+                                    {{ form.telephone }} {% if form.telephone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.telephone.errors %} {{ error }} {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.adresse.id_for_label }}" class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i> Adresse
+                                    </label>
+                                    {{ form.adresse }} {% if form.adresse.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.adresse.errors %} {{ error }} {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{% url 'detail_client' client.pk %}" class="btn btn-secondary me-md-2">
+                                        <i class="fas fa-times"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-save"></i> Enregistrer les modifications
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

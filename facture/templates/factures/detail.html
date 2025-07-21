@@ -64,6 +64,23 @@
                                             <div class="row mb-3">
                                                 <div class="col-sm-4">
                                                     <strong class="text-muted">
+                                                        <i class="fas fa-user"></i> Client :
+                                                    </strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <a
+                                                        href="{% url 'detail_client' facture.client.pk %}"
+                                                        class="text-decoration-none"
+                                                    >
+                                                        <i class="fas fa-user text-primary"></i> {{ facture.client.nom
+                                                        }}
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong class="text-muted">
                                                         <i class="fas fa-tag"></i> Catégorie :
                                                     </strong>
                                                 </div>
