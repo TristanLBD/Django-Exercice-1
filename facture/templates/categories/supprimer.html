@@ -4,142 +4,82 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Supprimer la Catégorie</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f5f5f5;
-            }
-            .container {
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            }
-            h1 {
-                color: #333;
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .warning-box {
-                background-color: #fff3cd;
-                border: 1px solid #ffeaa7;
-                border-radius: 8px;
-                padding: 20px;
-                margin-bottom: 30px;
-                text-align: center;
-            }
-            .warning-box h2 {
-                color: #856404;
-                margin-top: 0;
-            }
-            .categorie-info {
-                background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 8px;
-                border-left: 5px solid #dc3545;
-                margin-bottom: 30px;
-            }
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 8px 0;
-                border-bottom: 1px solid #eee;
-            }
-            .info-row:last-child {
-                border-bottom: none;
-            }
-            .info-label {
-                font-weight: bold;
-                color: #555;
-            }
-            .info-value {
-                color: #333;
-            }
-            .categorie-color {
-                display: inline-block;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                margin-right: 10px;
-                vertical-align: middle;
-            }
-            .btn {
-                display: inline-block;
-                padding: 12px 24px;
-                margin: 5px;
-                background-color: #007bff;
-                color: white;
-                text-decoration: none;
-                border: none;
-                border-radius: 5px;
-                font-size: 16px;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            }
-            .btn:hover {
-                background-color: #0056b3;
-            }
-            .btn-danger {
-                background-color: #dc3545;
-            }
-            .btn-danger:hover {
-                background-color: #c82333;
-            }
-            .btn-secondary {
-                background-color: #6c757d;
-            }
-            .btn-secondary:hover {
-                background-color: #545b62;
-            }
-        </style>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     </head>
-    <body>
-        <div class="container">
-            <h1>🗑️ Supprimer la Catégorie</h1>
+    <body class="bg-light">
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-danger text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h1 class="h3 mb-0"><i class="fas fa-trash"></i> Supprimer la Catégorie</h1>
+                                <div>
+                                    <a href="{% url 'index' %}" class="btn btn-outline-light btn-sm">
+                                        <i class="fas fa-home"></i> Accueil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning" role="alert">
+                                <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Attention !</h4>
+                                <p class="mb-0">
+                                    Vous êtes sur le point de supprimer définitivement cette catégorie. Cette action est
+                                    irréversible.
+                                </p>
+                                {% if factures %}
+                                <hr />
+                                <p class="mb-0">
+                                    <strong>Attention :</strong> Cette catégorie contient {{ factures.count }}
+                                    facture(s) qui seront également supprimées !
+                                </p>
+                                {% endif %}
+                            </div>
 
-            <div class="warning-box">
-                <h2>⚠️ Attention !</h2>
-                <p>
-                    Vous êtes sur le point de supprimer définitivement cette catégorie. Cette action est irréversible.
-                </p>
-                {% if factures %}
-                <p>
-                    <strong>Attention :</strong> Cette catégorie contient {{ factures.count }} facture(s) qui seront
-                    également supprimées !
-                </p>
-                {% endif %}
+                            <div class="card border-danger">
+                                <div class="card-header bg-light text-danger">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-info-circle"></i> Informations de la catégorie
+                                    </h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        <span
+                                            class="badge rounded-pill"
+                                            style="background-color: {{ categorie.couleur }}; width: 60px; height: 60px; font-size: 1.5rem;"
+                                        ></span>
+                                    </div>
+                                    <h5 class="card-title">{{ categorie.nom }}</h5>
+                                    <p class="text-muted mb-2">Couleur : {{ categorie.couleur }}</p>
+                                    <p class="text-muted">ID : {{ categorie.pk }}</p>
+                                </div>
+                            </div>
+
+                            <form method="post" class="mt-4">
+                                {% csrf_token %}
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                    <a href="{% url 'index' %}" class="btn btn-secondary me-md-2">
+                                        <i class="fas fa-times"></i> Annuler
+                                    </a>
+                                    <a href="{% url 'liste_categories' %}" class="btn btn-secondary me-md-2">
+                                        <i class="fas fa-list"></i> Retour à la liste
+                                    </a>
+                                    <a href="{% url 'detail_categorie' categorie.pk %}" class="btn btn-primary me-md-2">
+                                        <i class="fas fa-eye"></i> Voir les détails
+                                    </a>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i> Confirmer la suppression
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="categorie-info">
-                <h3>Informations de la catégorie :</h3>
-                <div class="info-row">
-                    <span class="info-label">Nom :</span>
-                    <span class="info-value">
-                        <span class="categorie-color" style="background-color: {{ categorie.couleur }};"></span>
-                        {{ categorie.nom }}
-                    </span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Couleur :</span>
-                    <span class="info-value">{{ categorie.couleur }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">ID :</span>
-                    <span class="info-value">{{ categorie.pk }}</span>
-                </div>
-            </div>
-
-            <form method="post" style="text-align: center">
-                {% csrf_token %}
-                <a href="{% url 'index' %}" class="btn btn-secondary">❌ Annuler</a>
-                <a href="{% url 'liste_categories' %}" class="btn btn-secondary">🏷️ Retour à la liste</a>
-                <a href="{% url 'detail_categorie' categorie.pk %}" class="btn">👁️ Voir les détails</a>
-                <button type="submit" class="btn btn-danger">🗑️ Confirmer la suppression</button>
-            </form>
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

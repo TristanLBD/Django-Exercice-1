@@ -4,108 +4,73 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Modifier la Catégorie</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f5f5f5;
-            }
-            .container {
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            }
-            h1 {
-                color: #333;
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .form-group {
-                margin-bottom: 20px;
-            }
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
-                color: #555;
-            }
-            .form-control {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                font-size: 16px;
-                box-sizing: border-box;
-            }
-            .form-control:focus {
-                outline: none;
-                border-color: #007bff;
-                box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-            }
-            .btn {
-                display: inline-block;
-                padding: 12px 24px;
-                margin: 5px;
-                background-color: #007bff;
-                color: white;
-                text-decoration: none;
-                border: none;
-                border-radius: 5px;
-                font-size: 16px;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            }
-            .btn:hover {
-                background-color: #0056b3;
-            }
-            .btn-warning {
-                background-color: #ffc107;
-                color: #212529;
-            }
-            .btn-warning:hover {
-                background-color: #e0a800;
-            }
-            .error {
-                color: #dc3545;
-                font-size: 14px;
-                margin-top: 5px;
-            }
-        </style>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     </head>
-    <body>
-        <div class="container">
-            <h1>✏️ Modifier la Catégorie</h1>
+    <body class="bg-light">
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-warning text-dark">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h1 class="h3 mb-0"><i class="fas fa-edit"></i> Modifier la Catégorie</h1>
+                                <div>
+                                    <a href="{% url 'index' %}" class="btn btn-outline-dark btn-sm">
+                                        <i class="fas fa-home"></i> Accueil
+                                    </a>
+                                    <a href="{% url 'liste_categories' %}" class="btn btn-outline-dark btn-sm">
+                                        <i class="fas fa-list"></i> Liste
+                                    </a>
+                                    <a
+                                        href="{% url 'detail_categorie' categorie.pk %}"
+                                        class="btn btn-outline-dark btn-sm"
+                                    >
+                                        <i class="fas fa-eye"></i> Détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
 
-            <div style="text-align: center; margin-bottom: 30px">
-                <a href="{% url 'index' %}" class="btn">← Retour à l'accueil</a>
-                <a href="{% url 'liste_categories' %}" class="btn">🏷️ Voir toutes les catégories</a>
-                <a href="{% url 'detail_categorie' categorie.pk %}" class="btn">👁️ Voir les détails</a>
+                                <div class="mb-3">
+                                    <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                        <i class="fas fa-tag"></i> Nom de la catégorie
+                                    </label>
+                                    {{ form.nom }} {% if form.nom.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.nom.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="{{ form.couleur.id_for_label }}" class="form-label">
+                                        <i class="fas fa-palette"></i> Couleur
+                                    </label>
+                                    {{ form.couleur }} {% if form.couleur.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.couleur.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a
+                                        href="{% url 'detail_categorie' categorie.pk %}"
+                                        class="btn btn-secondary me-md-2"
+                                    >
+                                        <i class="fas fa-times"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-save"></i> Enregistrer les modifications
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label for="{{ form.nom.id_for_label }}">Nom de la catégorie :</label>
-                    {{ form.nom }} {% if form.nom.errors %}
-                    <div class="error">{{ form.nom.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.couleur.id_for_label }}">Couleur :</label>
-                    {{ form.couleur }} {% if form.couleur.errors %}
-                    <div class="error">{{ form.couleur.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div style="text-align: center; margin-top: 30px">
-                    <button type="submit" class="btn btn-warning">💾 Enregistrer les modifications</button>
-                </div>
-            </form>
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>
