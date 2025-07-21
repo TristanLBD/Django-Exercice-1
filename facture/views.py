@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from .models import Categorie, Facture, Client
 from .forms import CategorieForm, FactureForm, ClientForm
 
@@ -16,114 +18,104 @@ def index(request):
     return render(request, 'index.html', context)
 
 # Vues pour les Catégories
-def liste_categories(request):
-    categories = Categorie.objects.all().order_by('nom')
-    return render(request, 'categories/liste.html', {'categories': categories})
+class ListeCategoriesView(ListView):
+    model = Categorie
+    template_name = 'categories/liste.html'
+    context_object_name = 'categories'
+    ordering = ['nom']
 
-def creer_categorie(request):
-    if request.method == 'POST':
-        form = CategorieForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('liste_categories')
-    else:
-        form = CategorieForm()
-    return render(request, 'categories/creer.html', {'form': form})
+class CreerCategorieView(CreateView):
+    model = Categorie
+    form_class = CategorieForm
+    template_name = 'categories/creer.html'
+    success_url = reverse_lazy('liste_categories')
 
-def modifier_categorie(request, pk):
-    categorie = get_object_or_404(Categorie, pk=pk)
-    if request.method == 'POST':
-        form = CategorieForm(request.POST, instance=categorie)
-        if form.is_valid():
-            form.save()
-            return redirect('detail_categorie', pk=categorie.pk)
-    else:
-        form = CategorieForm(instance=categorie)
-    return render(request, 'categories/modifier.html', {'form': form, 'categorie': categorie})
+class ModifierCategorieView(UpdateView):
+    model = Categorie
+    form_class = CategorieForm
+    template_name = 'categories/modifier.html'
 
-def supprimer_categorie(request, pk):
-    categorie = get_object_or_404(Categorie, pk=pk)
-    if request.method == 'POST':
-        categorie.delete()
-        return redirect('liste_categories')
-    return render(request, 'categories/supprimer.html', {'categorie': categorie})
+    def get_success_url(self):
+        return reverse_lazy('detail_categorie', kwargs={'pk': self.object.pk})
 
-def detail_categorie(request, pk):
-    categorie = get_object_or_404(Categorie, pk=pk)
-    factures = Facture.objects.filter(categorie=categorie).order_by('-date')
-    return render(request, 'categories/detail.html', {'categorie': categorie, 'factures': factures})
+class SupprimerCategorieView(DeleteView):
+    model = Categorie
+    template_name = 'categories/supprimer.html'
+    success_url = reverse_lazy('liste_categories')
+
+class DetailCategorieView(DetailView):
+    model = Categorie
+    template_name = 'categories/detail.html'
+    context_object_name = 'categorie'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['factures'] = Facture.objects.filter(categorie=self.object).order_by('-date')
+        return context
 
 # Vues pour les Clients
-def liste_clients(request):
-    clients = Client.objects.all().order_by('nom')
-    return render(request, 'clients/liste.html', {'clients': clients})
+class ListeClientsView(ListView):
+    model = Client
+    template_name = 'clients/liste.html'
+    context_object_name = 'clients'
+    ordering = ['nom']
 
-def creer_client(request):
-    if request.method == 'POST':
-        form = ClientForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('liste_clients')
-    else:
-        form = ClientForm()
-    return render(request, 'clients/creer.html', {'form': form})
+class CreerClientView(CreateView):
+    model = Client
+    form_class = ClientForm
+    template_name = 'clients/creer.html'
+    success_url = reverse_lazy('liste_clients')
 
-def modifier_client(request, pk):
-    client = get_object_or_404(Client, pk=pk)
-    if request.method == 'POST':
-        form = ClientForm(request.POST, instance=client)
-        if form.is_valid():
-            form.save()
-            return redirect('detail_client', pk=client.pk)
-    else:
-        form = ClientForm(instance=client)
-    return render(request, 'clients/modifier.html', {'form': form, 'client': client})
+class ModifierClientView(UpdateView):
+    model = Client
+    form_class = ClientForm
+    template_name = 'clients/modifier.html'
 
-def supprimer_client(request, pk):
-    client = get_object_or_404(Client, pk=pk)
-    if request.method == 'POST':
-        client.delete()
-        return redirect('liste_clients')
-    return render(request, 'clients/supprimer.html', {'client': client})
+    def get_success_url(self):
+        return reverse_lazy('detail_client', kwargs={'pk': self.object.pk})
 
-def detail_client(request, pk):
-    client = get_object_or_404(Client, pk=pk)
-    factures = Facture.objects.filter(client=client).order_by('-date')
-    return render(request, 'clients/detail.html', {'client': client, 'factures': factures})
+class SupprimerClientView(DeleteView):
+    model = Client
+    template_name = 'clients/supprimer.html'
+    success_url = reverse_lazy('liste_clients')
+
+class DetailClientView(DetailView):
+    model = Client
+    template_name = 'clients/detail.html'
+    context_object_name = 'client'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['factures'] = Facture.objects.filter(client=self.object).order_by('-date')
+        return context
 
 # Vues pour les Factures
-def liste_factures(request):
-    factures = Facture.objects.all().order_by('-date')
-    return render(request, 'factures/liste.html', {'factures': factures})
+class ListeFacturesView(ListView):
+    model = Facture
+    template_name = 'factures/liste.html'
+    context_object_name = 'factures'
+    ordering = ['-date']
 
-def creer_facture(request):
-    if request.method == 'POST':
-        form = FactureForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('liste_factures')
-    else:
-        form = FactureForm()
-    return render(request, 'factures/creer.html', {'form': form})
+class CreerFactureView(CreateView):
+    model = Facture
+    form_class = FactureForm
+    template_name = 'factures/creer.html'
+    success_url = reverse_lazy('liste_factures')
 
-def modifier_facture(request, pk):
-    facture = get_object_or_404(Facture, pk=pk)
-    if request.method == 'POST':
-        form = FactureForm(request.POST, instance=facture)
-        if form.is_valid():
-            form.save()
-            return redirect('detail_facture', pk=facture.pk)
-    else:
-        form = FactureForm(instance=facture)
-    return render(request, 'factures/modifier.html', {'form': form, 'facture': facture})
+class ModifierFactureView(UpdateView):
+    model = Facture
+    form_class = FactureForm
+    template_name = 'factures/modifier.html'
 
-def supprimer_facture(request, pk):
-    facture = get_object_or_404(Facture, pk=pk)
-    if request.method == 'POST':
-        facture.delete()
-        return redirect('liste_factures')
-    return render(request, 'factures/supprimer.html', {'facture': facture})
+    def get_success_url(self):
+        return reverse_lazy('detail_facture', kwargs={'pk': self.object.pk})
 
-def detail_facture(request, pk):
-    facture = get_object_or_404(Facture, pk=pk)
-    return render(request, 'factures/detail.html', {'facture': facture})
+class SupprimerFactureView(DeleteView):
+    model = Facture
+    template_name = 'factures/supprimer.html'
+    success_url = reverse_lazy('liste_factures')
+
+class DetailFactureView(DetailView):
+    model = Facture
+    template_name = 'factures/detail.html'
+    context_object_name = 'facture'
