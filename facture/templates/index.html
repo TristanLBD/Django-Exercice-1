@@ -1,5 +1,139 @@
-{{ messages }} {% for message in messages %}
-<p>Contenu : {{ message.content }}</p>
-<p>Utilisateur : {{ message.username }}</p>
-<p>Date : {{ message.created_at }}</p>
-{% endfor %}
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gestion des Factures</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .section {
+                margin-bottom: 30px;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            .section h2 {
+                color: #555;
+                margin-top: 0;
+            }
+            .btn {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 5px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #0056b3;
+            }
+            .btn-success {
+                background-color: #28a745;
+            }
+            .btn-success:hover {
+                background-color: #1e7e34;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                color: #212529;
+            }
+            .btn-warning:hover {
+                background-color: #e0a800;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+            }
+            .btn-danger:hover {
+                background-color: #c82333;
+            }
+            .factures-list,
+            .categories-list {
+                margin-top: 20px;
+            }
+            .item {
+                padding: 10px;
+                margin: 5px 0;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                border-left: 4px solid #007bff;
+            }
+            .status-paye {
+                color: #28a745;
+                font-weight: bold;
+            }
+            .status-non-paye {
+                color: #dc3545;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🏢 Gestion des Factures</h1>
+
+            <div class="section">
+                <h2>📋 Gestion des Factures</h2>
+                <a href="{% url 'liste_factures' %}" class="btn">Voir toutes les factures</a>
+                <a href="{% url 'creer_facture' %}" class="btn btn-success">Créer une facture</a>
+
+                <div class="factures-list">
+                    <h3>Dernières factures :</h3>
+                    {% if factures %} {% for facture in factures|slice:":5" %}
+                    <div class="item">
+                        <strong>{{ facture.numero }}</strong> - {{ facture.date }} - {{ facture.montant }}€ ({{
+                        facture.categorie.nom }})
+                        <span class="{% if facture.paye %}status-paye{% else %}status-non-paye{% endif %}">
+                            {% if facture.paye %} ✅ Payée {% else %} ❌ Non payée {% endif %}
+                        </span>
+                        <a href="{% url 'detail_facture' facture.pk %}" class="btn">Voir</a>
+                        <a href="{% url 'modifier_facture' facture.pk %}" class="btn btn-warning">Modifier</a>
+                        <a href="{% url 'supprimer_facture' facture.pk %}" class="btn btn-danger">Supprimer</a>
+                    </div>
+                    {% endfor %} {% else %}
+                    <p>Aucune facture pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🏷️ Gestion des Catégories</h2>
+                <a href="{% url 'liste_categories' %}" class="btn">Voir toutes les catégories</a>
+                <a href="{% url 'creer_categorie' %}" class="btn btn-success">Créer une catégorie</a>
+
+                <div class="categories-list">
+                    <h3>Catégories disponibles :</h3>
+                    {% if categories %} {% for categorie in categories %}
+                    <div class="item">
+                        <span style="color: {{ categorie.couleur }};">●</span>
+                        <strong>{{ categorie.nom }}</strong>
+                        <a href="{% url 'detail_categorie' categorie.pk %}" class="btn">Voir</a>
+                        <a href="{% url 'modifier_categorie' categorie.pk %}" class="btn btn-warning">Modifier</a>
+                        <a href="{% url 'supprimer_categorie' categorie.pk %}" class="btn btn-danger">Supprimer</a>
+                    </div>
+                    {% endfor %} {% else %}
+                    <p>Aucune catégorie pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

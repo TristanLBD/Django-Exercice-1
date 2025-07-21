@@ -13,6 +13,7 @@ class Facture(models.Model):
     date = models.DateField()
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE)
+    paye = models.BooleanField(default=False, verbose_name="Payée")
 
     def __str__(self):
-        return self.content
+        return self.numero

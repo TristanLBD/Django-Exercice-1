@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Liste des Catégories</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .btn {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 5px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #0056b3;
+            }
+            .btn-success {
+                background-color: #28a745;
+            }
+            .btn-success:hover {
+                background-color: #1e7e34;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                color: #212529;
+            }
+            .btn-warning:hover {
+                background-color: #e0a800;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+            }
+            .btn-danger:hover {
+                background-color: #c82333;
+            }
+            .categorie-item {
+                padding: 15px;
+                margin: 10px 0;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                border-left: 4px solid #007bff;
+            }
+            .categorie-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .categorie-color {
+                display: inline-block;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                margin-right: 15px;
+                vertical-align: middle;
+            }
+            .categorie-info {
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🏷️ Liste des Catégories</h1>
+
+            <div style="text-align: center; margin-bottom: 30px">
+                <a href="{% url 'index' %}" class="btn">← Retour à l'accueil</a>
+                <a href="{% url 'creer_categorie' %}" class="btn btn-success">➕ Créer une catégorie</a>
+            </div>
+
+            {% if categories %} {% for categorie in categories %}
+            <div class="categorie-item">
+                <div class="categorie-header">
+                    <h3>
+                        <span class="categorie-color" style="background-color: {{ categorie.couleur }};"></span>
+                        {{ categorie.nom }}
+                    </h3>
+                    <div>
+                        <a href="{% url 'detail_categorie' categorie.pk %}" class="btn">👁️ Voir</a>
+                        <a href="{% url 'modifier_categorie' categorie.pk %}" class="btn btn-warning">✏️ Modifier</a>
+                        <a href="{% url 'supprimer_categorie' categorie.pk %}" class="btn btn-danger">🗑️ Supprimer</a>
+                    </div>
+                </div>
+                <div class="categorie-info">
+                    <p><strong>Couleur :</strong> {{ categorie.couleur }}</p>
+                    <p><strong>ID :</strong> {{ categorie.pk }}</p>
+                </div>
+            </div>
+            {% endfor %} {% else %}
+            <div style="text-align: center; padding: 50px">
+                <h2>Aucune catégorie trouvée</h2>
+                <p>Commencez par créer votre première catégorie !</p>
+                <a href="{% url 'creer_categorie' %}" class="btn btn-success">Créer une catégorie</a>
+            </div>
+            {% endif %}
+        </div>
+    </body>
+</html>

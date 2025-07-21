@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Modifier la Catégorie</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                color: #555;
+            }
+            .form-control {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+            .form-control:focus {
+                outline: none;
+                border-color: #007bff;
+                box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+            }
+            .btn {
+                display: inline-block;
+                padding: 12px 24px;
+                margin: 5px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #0056b3;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                color: #212529;
+            }
+            .btn-warning:hover {
+                background-color: #e0a800;
+            }
+            .error {
+                color: #dc3545;
+                font-size: 14px;
+                margin-top: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>✏️ Modifier la Catégorie</h1>
+
+            <div style="text-align: center; margin-bottom: 30px">
+                <a href="{% url 'index' %}" class="btn">← Retour à l'accueil</a>
+                <a href="{% url 'liste_categories' %}" class="btn">🏷️ Voir toutes les catégories</a>
+                <a href="{% url 'detail_categorie' categorie.pk %}" class="btn">👁️ Voir les détails</a>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="{{ form.nom.id_for_label }}">Nom de la catégorie :</label>
+                    {{ form.nom }} {% if form.nom.errors %}
+                    <div class="error">{{ form.nom.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.couleur.id_for_label }}">Couleur :</label>
+                    {{ form.couleur }} {% if form.couleur.errors %}
+                    <div class="error">{{ form.couleur.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="text-align: center; margin-top: 30px">
+                    <button type="submit" class="btn btn-warning">💾 Enregistrer les modifications</button>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Liste des Factures</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .btn {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 5px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #0056b3;
+            }
+            .btn-success {
+                background-color: #28a745;
+            }
+            .btn-success:hover {
+                background-color: #1e7e34;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                color: #212529;
+            }
+            .btn-warning:hover {
+                background-color: #e0a800;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+            }
+            .btn-danger:hover {
+                background-color: #c82333;
+            }
+            .facture-item {
+                padding: 15px;
+                margin: 10px 0;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                border-left: 4px solid #007bff;
+            }
+            .facture-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .facture-info {
+                color: #666;
+            }
+            .status-paye {
+                color: #28a745;
+                font-weight: bold;
+            }
+            .status-non-paye {
+                color: #dc3545;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📋 Liste des Factures</h1>
+
+            <div style="text-align: center; margin-bottom: 30px">
+                <a href="{% url 'index' %}" class="btn">← Retour à l'accueil</a>
+                <a href="{% url 'creer_facture' %}" class="btn btn-success">➕ Créer une facture</a>
+            </div>
+
+            {% if factures %} {% for facture in factures %}
+            <div class="facture-item">
+                <div class="facture-header">
+                    <h3>{{ facture.numero }}</h3>
+                    <div>
+                        <a href="{% url 'detail_facture' facture.pk %}" class="btn">👁️ Voir</a>
+                        <a href="{% url 'modifier_facture' facture.pk %}" class="btn btn-warning">✏️ Modifier</a>
+                        <a href="{% url 'supprimer_facture' facture.pk %}" class="btn btn-danger">🗑️ Supprimer</a>
+                    </div>
+                </div>
+                <div class="facture-info">
+                    <p><strong>Date :</strong> {{ facture.date }}</p>
+                    <p><strong>Montant :</strong> {{ facture.montant }}€</p>
+                    <p>
+                        <strong>Catégorie :</strong>
+                        <span style="color: {{ facture.categorie.couleur }};">●</span>
+                        {{ facture.categorie.nom }}
+                    </p>
+                    <p>
+                        <strong>Statut :</strong>
+                        <span class="{% if facture.paye %}status-paye{% else %}status-non-paye{% endif %}">
+                            {% if facture.paye %} ✅ Payée {% else %} ❌ Non payée {% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+            {% endfor %} {% else %}
+            <div style="text-align: center; padding: 50px">
+                <h2>Aucune facture trouvée</h2>
+                <p>Commencez par créer votre première facture !</p>
+                <a href="{% url 'creer_facture' %}" class="btn btn-success">Créer une facture</a>
+            </div>
+            {% endif %}
+        </div>
+    </body>
+</html>

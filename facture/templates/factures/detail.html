@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Détails de la Facture</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                color: #333;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .facture-details {
+                background-color: #f8f9fa;
+                padding: 25px;
+                border-radius: 8px;
+                border-left: 5px solid #007bff;
+                margin-bottom: 30px;
+            }
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+                border-bottom: 1px solid #eee;
+            }
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+            .detail-label {
+                font-weight: bold;
+                color: #555;
+            }
+            .detail-value {
+                color: #333;
+            }
+            .status-paye {
+                color: #28a745;
+                font-weight: bold;
+            }
+            .status-non-paye {
+                color: #dc3545;
+                font-weight: bold;
+            }
+            .btn {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 5px;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            .btn:hover {
+                background-color: #0056b3;
+            }
+            .btn-warning {
+                background-color: #ffc107;
+                color: #212529;
+            }
+            .btn-warning:hover {
+                background-color: #e0a800;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+            }
+            .btn-danger:hover {
+                background-color: #c82333;
+            }
+            .categorie-color {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                margin-right: 10px;
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>👁️ Détails de la Facture</h1>
+
+            <div style="text-align: center; margin-bottom: 30px">
+                <a href="{% url 'index' %}" class="btn">← Retour à l'accueil</a>
+                <a href="{% url 'liste_factures' %}" class="btn">📋 Voir toutes les factures</a>
+                <a href="{% url 'modifier_facture' facture.pk %}" class="btn btn-warning">✏️ Modifier</a>
+                <a href="{% url 'supprimer_facture' facture.pk %}" class="btn btn-danger">🗑️ Supprimer</a>
+            </div>
+
+            <div class="facture-details">
+                <div class="detail-row">
+                    <span class="detail-label">Numéro de facture :</span>
+                    <span class="detail-value">{{ facture.numero }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Date :</span>
+                    <span class="detail-value">{{ facture.date }}</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Montant :</span>
+                    <span class="detail-value">{{ facture.montant }}€</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Catégorie :</span>
+                    <span class="detail-value">
+                        <span class="categorie-color" style="background-color: {{ facture.categorie.couleur }};"></span>
+                        {{ facture.categorie.nom }}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Statut de paiement :</span>
+                    <span class="detail-value {% if facture.paye %}status-paye{% else %}status-non-paye{% endif %}">
+                        {% if facture.paye %} ✅ Payée {% else %} ❌ Non payée {% endif %}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">ID de la facture :</span>
+                    <span class="detail-value">{{ facture.pk }}</span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
