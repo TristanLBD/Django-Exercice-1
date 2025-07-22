@@ -4,3 +4,5 @@ python manage.py runserver // pour lancer le serveur de développement
 
 python manage.py migrate // pour appliquer les migrations
 python manage.py makemigrations // pour créer les migrations
+
+python manage.py changepassword admin // Changer le Mot de passe de l'admin
