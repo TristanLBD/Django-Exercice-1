@@ -26,12 +26,43 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <!-- Filtre par client -->
+                            <!-- Filtres actifs en haut -->
+                            {% if client_selectionne or categorie_selectionnee %}
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-filter me-2"></i>
+                                            <strong>Filtres actifs :</strong>
+                                            {% if client_selectionne %}
+                                                {% for client in clients %}
+                                                    {% if client.id|stringformat:"s" == client_selectionne %}
+                                                        <span class="badge bg-primary me-2">Client: {{ client.nom }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% if categorie_selectionnee %}
+                                                {% for categorie in categories %}
+                                                    {% if categorie.id|stringformat:"s" == categorie_selectionnee %}
+                                                        <span class="badge bg-success me-2">Catégorie: {{ categorie.nom }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                        <a href="{% url 'liste_factures' %}" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-times"></i> Effacer tous les filtres
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Filtres par client et catégorie -->
                             <div class="row mb-4">
                                 <div class="col-md-6">
-                                    <form method="get" class="d-flex">
-                                        <label for="client" class="form-label me-2">Filtrer par client :</label>
-                                        <select name="client" class="form-select me-2" onchange="this.form.submit()">
+                                    <form method="get">
+                                        <label for="client" class="form-label me-2">Client</label>
+                                        <select name="client" id="client" class="form-select" onchange="this.form.submit()">
                                             <option value="">Tous les clients</option>
                                             {% for client in clients %}
                                             <option value="{{ client.id }}" {% if client_selectionne == client.id|stringformat:"s" %}selected{% endif %}>
@@ -39,25 +70,26 @@
                                             </option>
                                             {% endfor %}
                                         </select>
-                                        {% if client_selectionne %}
-                                        <a href="{% url 'liste_factures' %}" class="btn btn-outline-secondary">
-                                            <i class="fas fa-times"></i> Effacer
-                                        </a>
+                                        {% if categorie_selectionnee %}
+                                        <input type="hidden" name="categorie" value="{{ categorie_selectionnee }}">
                                         {% endif %}
                                     </form>
                                 </div>
-                                <div class="col-md-6 text-end">
-                                    <small class="text-muted">
-                                        {% if client_selectionne %}
-                                            {% for client in clients %}
-                                                {% if client.id|stringformat:"s" == client_selectionne %}
-                                                    Filtre actif : {{ client.nom }}
-                                                {% endif %}
+                                <div class="col-md-6">
+                                    <form method="get">
+                                        <label for="categorie" class="form-label me-2">Catégorie :</label>
+                                        <select name="categorie" id="categorie" class="form-select" onchange="this.form.submit()">
+                                            <option value="">Toutes les catégories</option>
+                                            {% for categorie in categories %}
+                                            <option value="{{ categorie.id }}" {% if categorie_selectionnee == categorie.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ categorie.nom }}
+                                            </option>
                                             {% endfor %}
-                                        {% else %}
-                                            Affichage de toutes les factures
+                                        </select>
+                                        {% if client_selectionne %}
+                                        <input type="hidden" name="client" value="{{ client_selectionne }}">
                                         {% endif %}
-                                    </small>
+                                    </form>
                                 </div>
                             </div>
 

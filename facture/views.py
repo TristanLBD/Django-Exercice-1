@@ -100,15 +100,22 @@ class ListeFacturesView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         client_id = self.request.GET.get('client')
+        categorie_id = self.request.GET.get('categorie')
+
         if client_id:
             queryset = queryset.filter(client_id=client_id)
+        if categorie_id:
+            queryset = queryset.filter(categorie_id=categorie_id)
+
         return queryset
 
-    # pour passer la liste des clients au template liste.html
+    # pour passer la liste des clients et catégories au template liste.html
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['clients'] = Client.objects.all().order_by('nom')
+        context['categories'] = Categorie.objects.all().order_by('nom')
         context['client_selectionne'] = self.request.GET.get('client')
+        context['categorie_selectionnee'] = self.request.GET.get('categorie')
         return context
 
 class CreerFactureView(CreateView):
