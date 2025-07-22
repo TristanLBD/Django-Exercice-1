@@ -6,3 +6,5 @@ python manage.py migrate // pour appliquer les migrations
 python manage.py makemigrations // pour créer les migrations
 
 python manage.py changepassword admin // Changer le Mot de passe de l'admin
+
+python manage.py test // Lancer les tests

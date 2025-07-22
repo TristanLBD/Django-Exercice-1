@@ -1,3 +1,518 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
+from decimal import Decimal
+from .models import Facture, Client, Categorie
 
-# Create your tests here.
+class FactureModelTest(TestCase):
+    """Tests pour le modèle Facture"""
+
+    def setUp(self):
+        """Création des données de test"""
+        # Créer un client de test
+        self.client = Client.objects.create(
+            nom="Jean Dupont",
+            email="jean.dupont@example.com",
+            telephone="0123456789",
+            adresse="123 Rue de la Paix, Paris"
+        )
+
+        # Créer une catégorie de test
+        self.categorie = Categorie.objects.create(
+            nom="Services",
+            couleur="#FF5733"
+        )
+
+    def test_creation_facture_complete(self):
+        """Test de création d'une facture avec tous les champs"""
+        facture = Facture.objects.create(
+            numero="FAC-2024-001",
+            date="2024-01-15",
+            montant_ht=Decimal("100.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        # Vérifier que la facture a été créée
+        self.assertEqual(facture.numero, "FAC-2024-001")
+        self.assertEqual(facture.montant_ht, Decimal("100.00"))
+        self.assertEqual(facture.taux_tva, Decimal("20.00"))
+        self.assertEqual(facture.client, self.client)
+        self.assertEqual(facture.categorie, self.categorie)
+        self.assertFalse(facture.paye)
+
+        # Vérifier que les calculs automatiques fonctionnent
+        self.assertEqual(facture.montant_tva, Decimal("20.00"))
+        self.assertEqual(facture.montant_ttc, Decimal("120.00"))
+
+    def test_calcul_automatique_tva_ttc(self):
+        """Test du calcul automatique de la TVA et TTC"""
+        facture = Facture.objects.create(
+            numero="FAC-2024-002",
+            date="2024-01-16",
+            montant_ht=Decimal("250.50"),
+            taux_tva=Decimal("10.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=True
+        )
+
+        # Vérifier les calculs
+        tva_attendue = Decimal("250.50") * Decimal("10.00") / Decimal("100")
+        ttc_attendu = Decimal("250.50") + tva_attendue
+
+        self.assertEqual(facture.montant_tva, tva_attendue)
+        self.assertEqual(facture.montant_ttc, ttc_attendu)
+
+        # Vérifier avec des valeurs précises
+        self.assertEqual(facture.montant_tva, Decimal("25.05"))
+        self.assertEqual(facture.montant_ttc, Decimal("275.55"))
+
+    def test_taux_tva_different(self):
+        """Test avec différents taux de TVA"""
+        # Test avec TVA 5.5%
+        facture1 = Facture.objects.create(
+            numero="FAC-2024-003",
+            date="2024-01-17",
+            montant_ht=Decimal("200.00"),
+            taux_tva=Decimal("5.5"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        self.assertEqual(facture1.montant_tva, Decimal("11.00"))
+        self.assertEqual(facture1.montant_ttc, Decimal("211.00"))
+
+        # Test avec TVA 0%
+        facture2 = Facture.objects.create(
+            numero="FAC-2024-004",
+            date="2024-01-18",
+            montant_ht=Decimal("150.00"),
+            taux_tva=Decimal("0.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        self.assertEqual(facture2.montant_tva, Decimal("0.00"))
+        self.assertEqual(facture2.montant_ttc, Decimal("150.00"))
+
+    def test_facture_sans_categorie(self):
+        """Test de création d'une facture sans catégorie (sera assignée à 'Autres')"""
+        facture = Facture.objects.create(
+            numero="FAC-2024-005",
+            date="2024-01-19",
+            montant_ht=Decimal("75.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=None,
+            paye=False
+        )
+
+        # Vérifier que la facture existe
+        self.assertIsNone(facture.categorie)
+        self.assertEqual(facture.montant_ht, Decimal("75.00"))
+        self.assertEqual(facture.montant_ttc, Decimal("90.00"))
+
+    def test_validation_montant_negatif(self):
+        """Test de validation avec un montant négatif"""
+        facture = Facture.objects.create(
+            numero="FAC-2024-006",
+            date="2024-01-20",
+            montant_ht=Decimal("-50.00"),  # Montant négatif
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        # Vérifier que la facture a été créée avec des montants négatifs
+        self.assertEqual(facture.montant_ht, Decimal("-50.00"))
+        self.assertEqual(facture.montant_tva, Decimal("-10.00"))
+        self.assertEqual(facture.montant_ttc, Decimal("-60.00"))
+
+    def test_representation_string(self):
+        """Test de la méthode __str__ du modèle"""
+        facture = Facture.objects.create(
+            numero="FAC-2024-007",
+            date="2024-01-21",
+            montant_ht=Decimal("300.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=True
+        )
+
+        self.assertEqual(str(facture), "FAC-2024-007")
+
+    def test_modification_facture_recalcule_tva(self):
+        """Test que la modification d'une facture recalcule automatiquement la TVA"""
+        facture = Facture.objects.create(
+            numero="FAC-2024-008",
+            date="2024-01-22",
+            montant_ht=Decimal("100.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        # Vérifier les valeurs initiales
+        self.assertEqual(facture.montant_tva, Decimal("20.00"))
+        self.assertEqual(facture.montant_ttc, Decimal("120.00"))
+
+        # Modifier le montant HT
+        facture.montant_ht = Decimal("200.00")
+        facture.save()
+
+        # Vérifier que les calculs ont été mis à jour
+        facture.refresh_from_db()
+        self.assertEqual(facture.montant_tva, Decimal("40.00"))
+        self.assertEqual(facture.montant_ttc, Decimal("240.00"))
+
+    def test_taux_tva_limites(self):
+        """Test des limites du taux de TVA"""
+        # Test avec taux TVA très élevé
+        facture = Facture.objects.create(
+            numero="FAC-2024-009",
+            date="2024-01-23",
+            montant_ht=Decimal("50.00"),
+            taux_tva=Decimal("100.00"),  # 100% de TVA
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        self.assertEqual(facture.montant_tva, Decimal("50.00"))
+        self.assertEqual(facture.montant_ttc, Decimal("100.00"))
+
+class FactureViewsTest(TestCase):
+    """Tests pour les vues des factures"""
+
+    def setUp(self):
+        """Création des données de test pour les vues"""
+        # Créer un client de test
+        self.client_test = Client.objects.create(
+            nom="Marie Martin",
+            email="marie.martin@example.com",
+            telephone="0987654321",
+            adresse="456 Avenue des Champs, Lyon"
+        )
+
+        # Créer une catégorie de test
+        self.categorie = Categorie.objects.create(
+            nom="Consultation",
+            couleur="#33FF57"
+        )
+
+        # Créer plusieurs factures de test
+        self.facture1 = Facture.objects.create(
+            numero="FAC-2024-010",
+            date="2024-02-01",
+            montant_ht=Decimal("150.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client_test,
+            categorie=self.categorie,
+            paye=True
+        )
+
+        self.facture2 = Facture.objects.create(
+            numero="FAC-2024-011",
+            date="2024-02-02",
+            montant_ht=Decimal("200.00"),
+            taux_tva=Decimal("10.00"),
+            client=self.client_test,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        self.facture3 = Facture.objects.create(
+            numero="FAC-2024-012",
+            date="2024-02-03",
+            montant_ht=Decimal("75.50"),
+            taux_tva=Decimal("5.5"),
+            client=self.client_test,
+            categorie=self.categorie,
+            paye=True
+        )
+
+    # Tests pour la vue de listage des factures
+    def test_liste_factures_acces(self):
+        """Test d'accès à la vue de listage des factures"""
+        response = self.client.get('/factures/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'factures/liste.html')
+
+    def test_liste_factures_contient_factures(self):
+        """Test que la liste des factures contient bien les factures créées"""
+        response = self.client.get('/factures/')
+        self.assertEqual(response.status_code, 200)
+
+        # Vérifier que toutes les factures sont présentes
+        self.assertContains(response, "FAC-2024-010")
+        self.assertContains(response, "FAC-2024-011")
+        self.assertContains(response, "FAC-2024-012")
+
+        # Vérifier que les montants TTC sont affichés (format français avec virgules)
+        self.assertContains(response, "180,00")  # 150 + 30 (TVA 20%)
+        self.assertContains(response, "220,00")  # 200 + 20 (TVA 10%)
+        self.assertContains(response, "79,65")   # 75.50 + 4.15 (TVA 5.5%)
+
+    def test_liste_factures_filtre_client(self):
+        """Test du filtre par client dans la liste des factures"""
+        # Créer un autre client
+        autre_client = Client.objects.create(
+            nom="Pierre Durand",
+            email="pierre.durand@example.com"
+        )
+
+        # Créer une facture pour l'autre client
+        Facture.objects.create(
+            numero="FAC-2024-013",
+            date="2024-02-04",
+            montant_ht=Decimal("100.00"),
+            taux_tva=Decimal("20.00"),
+            client=autre_client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        # Tester le filtre par client
+        response = self.client.get('/factures/', {'client': self.client_test.id})
+        self.assertEqual(response.status_code, 200)
+
+        # Vérifier que seules les factures du client filtré sont présentes
+        self.assertContains(response, "FAC-2024-010")
+        self.assertContains(response, "FAC-2024-011")
+        self.assertContains(response, "FAC-2024-012")
+        self.assertNotContains(response, "FAC-2024-013")
+
+    def test_liste_factures_filtre_categorie(self):
+        """Test du filtre par catégorie dans la liste des factures"""
+        # Créer une autre catégorie
+        autre_categorie = Categorie.objects.create(
+            nom="Formation",
+            couleur="#FF5733"
+        )
+
+        # Créer une facture pour l'autre catégorie
+        Facture.objects.create(
+            numero="FAC-2024-017",
+            date="2024-02-08",
+            montant_ht=Decimal("300.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client_test,
+            categorie=autre_categorie,
+            paye=True
+        )
+
+        # Tester le filtre par catégorie
+        response = self.client.get('/factures/', {'categorie': self.categorie.id})
+        self.assertEqual(response.status_code, 200)
+
+        # Vérifier que seules les factures de la catégorie filtrée sont présentes
+        self.assertContains(response, "FAC-2024-010")
+        self.assertContains(response, "FAC-2024-011")
+        self.assertContains(response, "FAC-2024-012")
+        self.assertNotContains(response, "FAC-2024-017")
+
+    def test_liste_factures_filtres_combines(self):
+        """Test des filtres combinés (client + catégorie)"""
+        # Créer un autre client et une autre catégorie
+        autre_client = Client.objects.create(
+            nom="Sophie Bernard",
+            email="sophie.bernard@example.com"
+        )
+        autre_categorie = Categorie.objects.create(
+            nom="Maintenance",
+            couleur="#33FF57"
+        )
+
+        # Créer des factures avec différentes combinaisons
+        Facture.objects.create(
+            numero="FAC-2024-018",
+            date="2024-02-09",
+            montant_ht=Decimal("150.00"),
+            taux_tva=Decimal("20.00"),
+            client=autre_client,
+            categorie=self.categorie,  # Même catégorie, client différent
+            paye=False
+        )
+
+        Facture.objects.create(
+            numero="FAC-2024-019",
+            date="2024-02-10",
+            montant_ht=Decimal("200.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client_test,
+            categorie=autre_categorie,  # Même client, catégorie différente
+            paye=True
+        )
+
+        # Tester les filtres combinés
+        response = self.client.get('/factures/', {
+            'client': self.client_test.id,
+            'categorie': self.categorie.id
+        })
+        self.assertEqual(response.status_code, 200)
+
+        # Vérifier que seules les factures correspondant aux deux filtres sont présentes
+        self.assertContains(response, "FAC-2024-010")
+        self.assertContains(response, "FAC-2024-011")
+        self.assertContains(response, "FAC-2024-012")
+        self.assertNotContains(response, "FAC-2024-018")  # Client différent
+        self.assertNotContains(response, "FAC-2024-019")  # Catégorie différente
+
+
+    # Tests pour la vue d'affichage d'une facture
+    def test_detail_facture_acces(self):
+        """Test d'accès à la vue de détail d'une facture"""
+        response = self.client.get(f'/factures/{self.facture1.pk}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'factures/detail.html')
+
+    def test_detail_facture_contient_informations(self):
+        """Test que la vue de détail contient toutes les informations de la facture"""
+        response = self.client.get(f'/factures/{self.facture1.pk}/')
+        self.assertEqual(response.status_code, 200)
+
+        # Vérifier les informations de base
+        self.assertContains(response, "FAC-2024-010")
+        self.assertContains(response, "1 février 2024")  # Format français
+        self.assertContains(response, "Marie Martin")
+
+        # Vérifier les montants (format français avec virgules)
+        self.assertContains(response, "150,00")  # Montant HT
+        self.assertContains(response, "20,00")   # Taux TVA
+        self.assertContains(response, "30,00")   # Montant TVA
+        self.assertContains(response, "180,00")  # Montant TTC
+
+    def test_detail_facture_404(self):
+        """Test que la vue de détail retourne 404 pour une facture inexistante"""
+        response = self.client.get('/factures/99999/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_detail_facture_liens_navigation(self):
+        """Test que la vue de détail contient les liens de navigation corrects"""
+        response = self.client.get(f'/factures/{self.facture1.pk}/')
+        self.assertEqual(response.status_code, 200)
+
+        # Vérifier la présence des liens de navigation
+        self.assertContains(response, 'href="/"')  # Lien vers l'accueil
+        self.assertContains(response, 'href="/factures/"')  # Lien vers la liste
+        self.assertContains(response, f'href="/factures/{self.facture1.pk}/modifier/"')  # Lien de modification
+        self.assertContains(response, f'href="/factures/{self.facture1.pk}/supprimer/"')  # Lien de suppression
+
+    def test_detail_facture_statut_paye_affichage(self):
+        """Test que le statut de paiement est correctement affiché"""
+        # Tester avec une facture payée
+        response = self.client.get(f'/factures/{self.facture1.pk}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Payée")
+        self.assertContains(response, "bg-success")
+
+        # Tester avec une facture non payée
+        response = self.client.get(f'/factures/{self.facture2.pk}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Non payée")
+        self.assertContains(response, "bg-danger")
+
+
+    # Tests pour la vue de création d'une facture
+    def test_creer_facture_acces_get(self):
+        """Test d'accès à la vue de création d'une facture (GET)"""
+        response = self.client.get('/factures/creer/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'factures/creer.html')
+
+    def test_creer_facture_post_valide(self):
+        """Test de création d'une facture avec des données valides (POST)"""
+        data = {
+            'numero': 'FAC-2024-014',
+            'date': '2024-02-05',
+            'montant_ht': '125.00',
+            'taux_tva': '20.00',
+            'client': self.client_test.id,
+            'categorie': self.categorie.id,
+            'paye': False
+        }
+
+        response = self.client.post('/factures/creer/', data)
+
+        # Vérifier la redirection après création
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/factures/')
+
+        # Vérifier que la facture a été créée en base
+        facture_creee = Facture.objects.get(numero='FAC-2024-014')
+        self.assertEqual(facture_creee.montant_ht, Decimal('125.00'))
+        self.assertEqual(facture_creee.montant_ttc, Decimal('150.00'))
+        self.assertEqual(facture_creee.client, self.client_test)
+
+    def test_creer_facture_post_invalide(self):
+        """Test de création d'une facture avec des données invalides (POST)"""
+        data = {
+            'numero': '',  # Numéro vide
+            'date': '2024-02-05',
+            'montant_ht': '125.00',
+            'taux_tva': '20.00',
+            'client': self.client_test.id,
+            'categorie': self.categorie.id,
+            'paye': False
+        }
+
+        response = self.client.post('/factures/creer/', data)
+
+        # Vérifier que la page s'affiche avec des erreurs
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ce champ est obligatoire")
+
+    def test_creer_facture_sans_categorie_assignation_automatique(self):
+        """Test que la création d'une facture sans catégorie assigne automatiquement 'Autres'"""
+        data = {
+            'numero': 'FAC-2024-015',
+            'date': '2024-02-06',
+            'montant_ht': '80.00',
+            'taux_tva': '20.00',
+            'client': self.client_test.id,
+            'categorie': '',  # Pas de catégorie sélectionnée
+            'paye': False
+        }
+
+        response = self.client.post('/factures/creer/', data)
+
+        # Vérifier la redirection après création
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/factures/')
+
+        # Vérifier que la facture a été créée avec la catégorie "Autres"
+        facture_creee = Facture.objects.get(numero='FAC-2024-015')
+        self.assertIsNotNone(facture_creee.categorie)
+        self.assertEqual(facture_creee.categorie.nom, "Autres")
+        self.assertEqual(facture_creee.montant_ttc, Decimal('96.00'))
+
+    def test_creer_facture_montant_negatif(self):
+        """Test de création d'une facture avec un montant négatif (doit fonctionner)"""
+        data = {
+            'numero': 'FAC-2024-016',
+            'date': '2024-02-07',
+            'montant_ht': '-25.00',  # Montant négatif
+            'taux_tva': '20.00',
+            'client': self.client_test.id,
+            'categorie': self.categorie.id,
+            'paye': False
+        }
+
+        response = self.client.post('/factures/creer/', data)
+
+        # Vérifier que la création fonctionne même avec un montant négatif
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/factures/')
+
+        # Vérifier que la facture a été créée avec les calculs corrects
+        facture_creee = Facture.objects.get(numero='FAC-2024-016')
+        self.assertEqual(facture_creee.montant_ht, Decimal('-25.00'))
+        self.assertEqual(facture_creee.montant_tva, Decimal('-5.00'))
+        self.assertEqual(facture_creee.montant_ttc, Decimal('-30.00'))
