@@ -5,8 +5,12 @@ from django.urls import reverse_lazy
 from .models import Categorie, Facture, Client
 from .forms import CategorieForm, FactureForm, ClientForm
 
-# Vue d'accueil
+
 def index(request):
+    """
+    Vue d'accueil affichant un aperçu des dernières factures,
+    des catégories et des clients.
+    """
     factures = Facture.objects.all().order_by('-date')[:5]
     categories = Categorie.objects.all()
     clients = Client.objects.all().order_by('nom')
@@ -17,20 +21,27 @@ def index(request):
     }
     return render(request, 'index.html', context)
 
-# Vues pour les Catégories
+
+# ===== VUES POUR LES CATÉGORIES =====
+
 class ListeCategoriesView(ListView):
+    """Vue pour afficher la liste de toutes les catégories."""
     model = Categorie
     template_name = 'categories/liste.html'
     context_object_name = 'categories'
     ordering = ['nom']
 
+
 class CreerCategorieView(CreateView):
+    """Vue pour créer une nouvelle catégorie."""
     model = Categorie
     form_class = CategorieForm
     template_name = 'categories/creer.html'
     success_url = reverse_lazy('liste_categories')
 
+
 class ModifierCategorieView(UpdateView):
+    """Vue pour modifier une catégorie existante."""
     model = Categorie
     form_class = CategorieForm
     template_name = 'categories/modifier.html'
@@ -38,35 +49,47 @@ class ModifierCategorieView(UpdateView):
     def get_success_url(self):
         return reverse_lazy('detail_categorie', kwargs={'pk': self.object.pk})
 
+
 class SupprimerCategorieView(DeleteView):
+    """Vue pour supprimer une catégorie."""
     model = Categorie
     template_name = 'categories/supprimer.html'
     success_url = reverse_lazy('liste_categories')
 
+
 class DetailCategorieView(DetailView):
+    """Vue pour afficher les détails d'une catégorie avec ses factures."""
     model = Categorie
     template_name = 'categories/detail.html'
     context_object_name = 'categorie'
 
     def get_context_data(self, **kwargs):
+        """Ajoute la liste des factures de cette catégorie au contexte."""
         context = super().get_context_data(**kwargs)
         context['factures'] = Facture.objects.filter(categorie=self.object).order_by('-date')
         return context
 
-# Vues pour les Clients
+
+# ===== VUES POUR LES CLIENTS =====
+
 class ListeClientsView(ListView):
+    """Vue pour afficher la liste de tous les clients."""
     model = Client
     template_name = 'clients/liste.html'
     context_object_name = 'clients'
     ordering = ['nom']
 
+
 class CreerClientView(CreateView):
+    """Vue pour créer un nouveau client."""
     model = Client
     form_class = ClientForm
     template_name = 'clients/creer.html'
     success_url = reverse_lazy('liste_clients')
 
+
 class ModifierClientView(UpdateView):
+    """Vue pour modifier un client existant."""
     model = Client
     form_class = ClientForm
     template_name = 'clients/modifier.html'
@@ -74,30 +97,44 @@ class ModifierClientView(UpdateView):
     def get_success_url(self):
         return reverse_lazy('detail_client', kwargs={'pk': self.object.pk})
 
+
 class SupprimerClientView(DeleteView):
+    """Vue pour supprimer un client."""
     model = Client
     template_name = 'clients/supprimer.html'
     success_url = reverse_lazy('liste_clients')
 
+
 class DetailClientView(DetailView):
+    """Vue pour afficher les détails d'un client avec ses factures."""
     model = Client
     template_name = 'clients/detail.html'
     context_object_name = 'client'
 
     def get_context_data(self, **kwargs):
+        """Ajoute la liste des factures de ce client au contexte."""
         context = super().get_context_data(**kwargs)
         context['factures'] = Facture.objects.filter(client=self.object).order_by('-date')
         return context
 
-# Vues pour les Factures
+
+# ===== VUES POUR LES FACTURES =====
+
 class ListeFacturesView(ListView):
+    """
+    Vue pour afficher la liste des factures avec filtres par client et catégorie.
+    Supporte les filtres combinés via les paramètres GET 'client' et 'categorie'.
+    """
     model = Facture
     template_name = 'factures/liste.html'
     context_object_name = 'factures'
     ordering = ['-date']
 
-    # pour filtrer les factures par client
     def get_queryset(self):
+        """
+        Applique les filtres par client et/ou catégorie selon les paramètres GET.
+        Permet de filtrer les factures de manière combinée.
+        """
         queryset = super().get_queryset()
         client_id = self.request.GET.get('client')
         categorie_id = self.request.GET.get('categorie')
@@ -109,8 +146,11 @@ class ListeFacturesView(ListView):
 
         return queryset
 
-    # pour passer la liste des clients et catégories au template liste.html
     def get_context_data(self, **kwargs):
+        """
+        Ajoute les listes de clients et catégories au contexte pour les filtres,
+        ainsi que les valeurs actuellement sélectionnées.
+        """
         context = super().get_context_data(**kwargs)
         context['clients'] = Client.objects.all().order_by('nom')
         context['categories'] = Categorie.objects.all().order_by('nom')
@@ -118,13 +158,23 @@ class ListeFacturesView(ListView):
         context['categorie_selectionnee'] = self.request.GET.get('categorie')
         return context
 
+
 class CreerFactureView(CreateView):
+    """
+    Vue pour créer une nouvelle facture.
+    Implémente la logique d'assignation automatique à la catégorie "Autres"
+    si aucune catégorie n'est sélectionnée.
+    """
     model = Facture
     form_class = FactureForm
     template_name = 'factures/creer.html'
     success_url = reverse_lazy('liste_factures')
 
     def form_valid(self, form):
+        """
+        Surcharge pour gérer l'assignation automatique à la catégorie "Autres"
+        si aucune catégorie n'est sélectionnée.
+        """
         # Sauvegarder d'abord la facture
         facture = form.save(commit=False)
 
@@ -139,12 +189,21 @@ class CreerFactureView(CreateView):
         facture.save()
         return super().form_valid(form)
 
+
 class ModifierFactureView(UpdateView):
+    """
+    Vue pour modifier une facture existante.
+    Implémente la même logique d'assignation automatique que la création.
+    """
     model = Facture
     form_class = FactureForm
     template_name = 'factures/modifier.html'
 
     def form_valid(self, form):
+        """
+        Surcharge pour gérer l'assignation automatique à la catégorie "Autres"
+        si aucune catégorie n'est sélectionnée.
+        """
         # Sauvegarder d'abord la facture
         facture = form.save(commit=False)
 
@@ -162,12 +221,16 @@ class ModifierFactureView(UpdateView):
     def get_success_url(self):
         return reverse_lazy('detail_facture', kwargs={'pk': self.object.pk})
 
+
 class SupprimerFactureView(DeleteView):
+    """Vue pour supprimer une facture."""
     model = Facture
     template_name = 'factures/supprimer.html'
     success_url = reverse_lazy('liste_factures')
 
+
 class DetailFactureView(DetailView):
+    """Vue pour afficher les détails d'une facture."""
     model = Facture
     template_name = 'factures/detail.html'
     context_object_name = 'facture'

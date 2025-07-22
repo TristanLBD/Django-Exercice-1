@@ -1,7 +1,12 @@
 from django import forms
 from .models import Categorie, Facture, Client
 
+
 class CategorieForm(forms.ModelForm):
+    """
+    Formulaire pour créer et modifier des catégories.
+    Inclut un sélecteur de couleur pour personnaliser l'affichage.
+    """
     class Meta:
         model = Categorie
         fields = ['nom', 'couleur']
@@ -10,7 +15,12 @@ class CategorieForm(forms.ModelForm):
             'couleur': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}),
         }
 
+
 class ClientForm(forms.ModelForm):
+    """
+    Formulaire pour créer et modifier des clients.
+    Gère les informations de contact et d'adresse.
+    """
     class Meta:
         model = Client
         fields = ['nom', 'email', 'telephone', 'adresse']
@@ -21,7 +31,13 @@ class ClientForm(forms.ModelForm):
             'adresse': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
+
 class FactureForm(forms.ModelForm):
+    """
+    Formulaire pour créer et modifier des factures.
+    Inclut la gestion des montants HT/TVA/TTC et l'assignation de catégories.
+    Les champs montant_tva et montant_ttc sont calculés automatiquement.
+    """
     class Meta:
         model = Facture
         fields = ['numero', 'date', 'montant_ht', 'taux_tva', 'client', 'categorie', 'paye']
@@ -39,6 +55,10 @@ class FactureForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialise le formulaire avec des labels et placeholders personnalisés.
+        Configure l'option vide pour la catégorie avec un message explicatif.
+        """
         super().__init__(*args, **kwargs)
         # Ajouter une option vide pour permettre de ne pas sélectionner de catégorie
         self.fields['categorie'].empty_label = "Aucune catégorie (sera assignée à 'Autres')"

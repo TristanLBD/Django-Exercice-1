@@ -1,13 +1,38 @@
+"""
+Tests pour l'application de gestion de factures.
+
+Ce module contient tous les tests unitaires et d'intégration pour l'application facture.
+Il teste les modèles, les vues et les fonctionnalités métier importantes.
+
+Structure des tests :
+- FactureModelTest : Tests des modèles et de la logique métier
+- FactureViewsTest : Tests des vues et de l'interface utilisateur
+
+Les tests couvrent :
+- Calculs automatiques de TVA/TTC
+- Filtrage des factures
+- Assignation automatique de catégories
+- Validation des données
+- Navigation et interface utilisateur
+"""
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from .models import Facture, Client, Categorie
 
 class FactureModelTest(TestCase):
-    """Tests pour le modèle Facture"""
+    """
+    Tests pour le modèle Facture.
+
+    Vérifie la logique métier, les calculs automatiques et les validations
+    du modèle principal de l'application.
+    """
 
     def setUp(self):
-        """Création des données de test"""
+        """
+        Création des données de test communes à tous les tests du modèle.
+        Initialise un client et une catégorie de test.
+        """
         # Créer un client de test
         self.client = Client.objects.create(
             nom="Jean Dupont",
@@ -23,7 +48,10 @@ class FactureModelTest(TestCase):
         )
 
     def test_creation_facture_complete(self):
-        """Test de création d'une facture avec tous les champs"""
+        """
+        Test de création d'une facture avec tous les champs.
+        Vérifie que tous les champs sont correctement sauvegardés.
+        """
         facture = Facture.objects.create(
             numero="FAC-2024-001",
             date="2024-01-15",
@@ -47,7 +75,10 @@ class FactureModelTest(TestCase):
         self.assertEqual(facture.montant_ttc, Decimal("120.00"))
 
     def test_calcul_automatique_tva_ttc(self):
-        """Test du calcul automatique de la TVA et TTC"""
+        """
+        Test du calcul automatique de la TVA et TTC.
+        Vérifie que les calculs sont précis avec des décimales.
+        """
         facture = Facture.objects.create(
             numero="FAC-2024-002",
             date="2024-01-16",
@@ -70,7 +101,10 @@ class FactureModelTest(TestCase):
         self.assertEqual(facture.montant_ttc, Decimal("275.55"))
 
     def test_taux_tva_different(self):
-        """Test avec différents taux de TVA"""
+        """
+        Test avec différents taux de TVA.
+        Vérifie que l'application gère correctement les taux réduits et nuls.
+        """
         # Test avec TVA 5.5%
         facture1 = Facture.objects.create(
             numero="FAC-2024-003",
@@ -145,7 +179,8 @@ class FactureModelTest(TestCase):
             paye=True
         )
 
-        self.assertEqual(str(facture), "FAC-2024-007")
+        # Vérifier que la représentation string inclut le numéro et le nom du client
+        self.assertEqual(str(facture), "FAC-2024-007 - Jean Dupont")
 
     def test_modification_facture_recalcule_tva(self):
         """Test que la modification d'une facture recalcule automatiquement la TVA"""

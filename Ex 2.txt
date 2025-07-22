@@ -1,8 +1,0 @@
-Etape 1:
-    Reprendre ce que vous avez réalisés dans l’exercice 1 et ajouter des filtres dans Django-Admin pour le modèle Facture:
-    a. Recherche par client
-    b. Recherche par nom
-Etape 2 :
-    Créer une Admin-Action
-    (https://docs.djangoproject.com/en/5.1/ref/contrib/admin/actions/) vous
-    permettant de marquer comme étant payé plusieurs factures d’un seul coup
