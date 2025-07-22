@@ -47,7 +47,7 @@ de la TVA et du TTC.
 1. **Cloner le projet**
 
 ```bash
-git clone https://github.com/TristanLBD/Projet-Django.git
+git clone https://github.com/TristanLBD/Django-Exercice-1.git
 cd Projet-Django
 ```
 
