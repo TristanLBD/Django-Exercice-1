@@ -96,6 +96,21 @@ class ListeFacturesView(ListView):
     context_object_name = 'factures'
     ordering = ['-date']
 
+    # pour filtrer les factures par client
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        client_id = self.request.GET.get('client')
+        if client_id:
+            queryset = queryset.filter(client_id=client_id)
+        return queryset
+
+    # pour passer la liste des clients au template liste.html
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['clients'] = Client.objects.all().order_by('nom')
+        context['client_selectionne'] = self.request.GET.get('client')
+        return context
+
 class CreerFactureView(CreateView):
     model = Facture
     form_class = FactureForm

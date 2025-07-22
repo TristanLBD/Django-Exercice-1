@@ -26,6 +26,41 @@
                             </div>
                         </div>
                         <div class="card-body">
+                            <!-- Filtre par client -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <form method="get" class="d-flex">
+                                        <label for="client" class="form-label me-2">Filtrer par client :</label>
+                                        <select name="client" class="form-select me-2" onchange="this.form.submit()">
+                                            <option value="">Tous les clients</option>
+                                            {% for client in clients %}
+                                            <option value="{{ client.id }}" {% if client_selectionne == client.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ client.nom }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if client_selectionne %}
+                                        <a href="{% url 'liste_factures' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times"></i> Effacer
+                                        </a>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">
+                                        {% if client_selectionne %}
+                                            {% for client in clients %}
+                                                {% if client.id|stringformat:"s" == client_selectionne %}
+                                                    Filtre actif : {{ client.nom }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            Affichage de toutes les factures
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+
                             {% if factures %}
                             <div class="row">
                                 {% for facture in factures %}
