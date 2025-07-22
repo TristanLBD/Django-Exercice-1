@@ -1,5 +1,147 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import Q, Sum, Count
+from decimal import Decimal
+
+
+class FactureQuerySet(models.QuerySet):
+    """
+    QuerySet personnalisé pour le modèle Facture.
+    Fournit des méthodes de filtrage et d'analyse avancées.
+    """
+
+    def payees(self):
+        """Retourne toutes les factures payées."""
+        return self.filter(paye=True)
+
+    def non_payees(self):
+        """Retourne toutes les factures non payées."""
+        return self.filter(paye=False)
+
+    def par_client(self, client_id):
+        """Retourne toutes les factures d'un client spécifique."""
+        return self.filter(client_id=client_id)
+
+    def par_categorie(self, categorie_id):
+        """Retourne toutes les factures d'une catégorie spécifique."""
+        return self.filter(categorie_id=categorie_id)
+
+    def par_periode(self, date_debut, date_fin):
+        """Retourne les factures dans une période donnée."""
+        return self.filter(date__range=[date_debut, date_fin])
+
+    def montant_total(self):
+        """Calcule le montant total TTC de toutes les factures."""
+        return self.aggregate(total=Sum('montant_ttc'))['total'] or Decimal('0.00')
+
+    def montant_ht_total(self):
+        """Calcule le montant total HT de toutes les factures."""
+        return self.aggregate(total=Sum('montant_ht'))['total'] or Decimal('0.00')
+
+    def montant_tva_total(self):
+        """Calcule le montant total de TVA de toutes les factures."""
+        return self.aggregate(total=Sum('montant_tva'))['total'] or Decimal('0.00')
+
+    def statistiques_par_categorie(self):
+        """Retourne les statistiques groupées par catégorie."""
+        return self.values('categorie__nom').annotate(
+            nombre=Count('id'),
+            total_ht=Sum('montant_ht'),
+            total_ttc=Sum('montant_ttc')
+        ).order_by('-total_ttc')
+
+    def statistiques_par_client(self):
+        """Retourne les statistiques groupées par client."""
+        return self.values('client__nom').annotate(
+            nombre=Count('id'),
+            total_ht=Sum('montant_ht'),
+            total_ttc=Sum('montant_ttc')
+        ).order_by('-total_ttc')
+
+    def recherche_avancee(self, terme):
+        """Recherche avancée dans les numéros et noms de clients."""
+        return self.filter(
+            Q(numero__icontains=terme) |
+            Q(client__nom__icontains=terme) |
+            Q(client__email__icontains=terme)
+        )
+
+
+class FactureManager(models.Manager):
+    """
+    Manager personnalisé pour le modèle Facture.
+    Fournit des méthodes de création et d'analyse avancées.
+    """
+
+    def get_queryset(self):
+        """Retourne le QuerySet personnalisé."""
+        return FactureQuerySet(self.model, using=self._db)
+
+    # Méthodes du QuerySet accessibles via le Manager
+    def payees(self):
+        return self.get_queryset().payees()
+
+    def non_payees(self):
+        return self.get_queryset().non_payees()
+
+    def par_client(self, client_id):
+        return self.get_queryset().par_client(client_id)
+
+    def par_categorie(self, categorie_id):
+        return self.get_queryset().par_categorie(categorie_id)
+
+    def montant_total(self):
+        return self.get_queryset().montant_total()
+
+    def montant_ht_total(self):
+        return self.get_queryset().montant_ht_total()
+
+    def montant_tva_total(self):
+        return self.get_queryset().montant_tva_total()
+
+    def recherche_avancee(self, terme):
+        return self.get_queryset().recherche_avancee(terme)
+
+    def creer_avec_categorie_autres(self, **kwargs):
+        """
+        Crée une facture en assignant automatiquement la catégorie 'Autres'
+        si aucune catégorie n'est spécifiée.
+        """
+        if 'categorie' not in kwargs or kwargs['categorie'] is None:
+            # Récupérer ou créer la catégorie 'Autres'
+            categorie, created = Categorie.objects.get_or_create(
+                nom='Autres',
+                defaults={'couleur': '#6c757d'}
+            )
+            kwargs['categorie'] = categorie
+
+        return self.create(**kwargs)
+
+    def factures_du_mois(self):
+        """Retourne toutes les factures du mois en cours."""
+        aujourd_hui = timezone.now().date()
+        debut_mois = aujourd_hui.replace(day=1)
+        fin_mois = (debut_mois.replace(day=28) + timezone.timedelta(days=4)).replace(day=1) - timezone.timedelta(days=1)
+
+        return self.get_queryset().par_periode(debut_mois, fin_mois)
+
+    def factures_de_l_annee(self, annee=None):
+        """Retourne toutes les factures d'une année donnée."""
+        if annee is None:
+            annee = timezone.now().year
+
+        debut_annee = timezone.datetime(annee, 1, 1).date()
+        fin_annee = timezone.datetime(annee, 12, 31).date()
+
+        return self.get_queryset().par_periode(debut_annee, fin_annee)
+
+    def top_clients(self, limite=5):
+        """Retourne les clients avec le plus de factures."""
+        return self.get_queryset().statistiques_par_client()[:limite]
+
+    def top_categories(self, limite=5):
+        """Retourne les catégories avec le plus de factures."""
+        return self.get_queryset().statistiques_par_categorie()[:limite]
 
 
 class Categorie(models.Model):
@@ -58,6 +200,9 @@ class Facture(models.Model):
     categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE,
                                  null=True, blank=True, verbose_name="Catégorie")
     paye = models.BooleanField(default=False, verbose_name="Payée")
+
+    # Manager personnalisé
+    objects = FactureManager()
 
     def save(self, *args, **kwargs):
         """

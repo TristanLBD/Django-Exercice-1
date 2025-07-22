@@ -130,29 +130,6 @@
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="{{ form.categorie.id_for_label }}" class="form-label">
-                                            <i class="fas fa-tag"></i> Catégorie
-                                        </label>
-                                        {{ form.categorie }} {% if form.categorie.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.categorie.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-check mt-4">
-                                            {{ form.paye }}
-                                            <label class="form-check-label" for="{{ form.paye.id_for_label }}">
-                                                <i class="fas fa-check-circle"></i> Facture payée
-                                            </label>
-                                        </div>
-                                        {% if form.paye.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.paye.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                     <a href="{% url 'detail_facture' facture.pk %}" class="btn btn-secondary me-md-2">
                                         <i class="fas fa-times"></i> Annuler

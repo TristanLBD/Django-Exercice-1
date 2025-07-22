@@ -10,14 +10,25 @@ def index(request):
     """
     Vue d'accueil affichant un aperçu des dernières factures,
     des catégories et des clients.
+    Utilise les méthodes du Manager et QuerySet personnalisés.
     """
-    factures = Facture.objects.all().order_by('-date')[:5]
+    factures = Facture.objects.all()
+    dernieres_factures = factures.order_by('-date')[:5]
+
+    total_factures = factures.count()
+    factures_payees = factures.payees().count()
+    montant_total = factures.montant_total()
+
     categories = Categorie.objects.all()
     clients = Client.objects.all().order_by('nom')
+
     context = {
-        'factures': factures,
+        'factures': dernieres_factures,
         'categories': categories,
         'clients': clients,
+        'total_factures': total_factures,
+        'factures_payees': factures_payees,
+        'montant_total': montant_total,
     }
     return render(request, 'index.html', context)
 
@@ -133,16 +144,16 @@ class ListeFacturesView(ListView):
     def get_queryset(self):
         """
         Applique les filtres par client et/ou catégorie selon les paramètres GET.
-        Permet de filtrer les factures de manière combinée.
+        Utilise les méthodes du QuerySet personnalisé.
         """
         queryset = super().get_queryset()
         client_id = self.request.GET.get('client')
         categorie_id = self.request.GET.get('categorie')
 
         if client_id:
-            queryset = queryset.filter(client_id=client_id)
+            queryset = queryset.par_client(client_id)
         if categorie_id:
-            queryset = queryset.filter(categorie_id=categorie_id)
+            queryset = queryset.par_categorie(categorie_id)
 
         return queryset
 
@@ -162,8 +173,7 @@ class ListeFacturesView(ListView):
 class CreerFactureView(CreateView):
     """
     Vue pour créer une nouvelle facture.
-    Implémente la logique d'assignation automatique à la catégorie "Autres"
-    si aucune catégorie n'est sélectionnée.
+    Utilise la méthode du Manager pour l'assignation automatique.
     """
     model = Facture
     form_class = FactureForm
@@ -172,8 +182,8 @@ class CreerFactureView(CreateView):
 
     def form_valid(self, form):
         """
-        Surcharge pour gérer l'assignation automatique à la catégorie "Autres"
-        si aucune catégorie n'est sélectionnée.
+        Utilise la méthode du Manager pour créer la facture avec
+        assignation automatique de la catégorie "Autres" si nécessaire.
         """
         # Sauvegarder d'abord la facture
         facture = form.save(commit=False)
@@ -182,7 +192,7 @@ class CreerFactureView(CreateView):
         if not facture.categorie:
             categorie_autres, created = Categorie.objects.get_or_create(
                 nom="Autres",
-                defaults={'couleur': '#6c757d'}  # Couleur grise par défaut
+                defaults={'couleur': '#6c757d'}
             )
             facture.categorie = categorie_autres
 
@@ -201,19 +211,28 @@ class ModifierFactureView(UpdateView):
 
     def form_valid(self, form):
         """
-        Surcharge pour gérer l'assignation automatique à la catégorie "Autres"
-        si aucune catégorie n'est sélectionnée.
+        Utilise la méthode du Manager pour modifier la facture avec
+        assignation automatique de la catégorie "Autres" si nécessaire.
         """
-        # Sauvegarder d'abord la facture
-        facture = form.save(commit=False)
+        # Mettre à jour les champs de la facture existante
+        facture = self.get_object()
+        facture.numero = form.cleaned_data['numero']
+        facture.date = form.cleaned_data['date']
+        facture.montant_ht = form.cleaned_data['montant_ht']
+        facture.taux_tva = form.cleaned_data['taux_tva']
+        facture.client = form.cleaned_data['client']
+        facture.paye = form.cleaned_data['paye']
 
-        # Si aucune catégorie n'est sélectionnée, assigner "Autres"
-        if not facture.categorie:
-            categorie_autres, created = Categorie.objects.get_or_create(
-                nom="Autres",
-                defaults={'couleur': '#6c757d'}  # Couleur grise par défaut
+        # Gérer la catégorie avec la logique du Manager
+        if form.cleaned_data.get('categorie'):
+            facture.categorie = form.cleaned_data['categorie']
+        else:
+            # Utiliser la même logique que le Manager
+            categorie, created = Categorie.objects.get_or_create(
+                nom='Autres',
+                defaults={'couleur': '#6c757d'}
             )
-            facture.categorie = categorie_autres
+            facture.categorie = categorie
 
         facture.save()
         return super().form_valid(form)
