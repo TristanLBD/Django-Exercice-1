@@ -53,11 +53,44 @@
                                             <div class="row mb-3">
                                                 <div class="col-sm-4">
                                                     <strong class="text-muted">
-                                                        <i class="fas fa-euro-sign"></i> Montant :
+                                                        <i class="fas fa-euro-sign"></i> Montant HT :
                                                     </strong>
                                                 </div>
                                                 <div class="col-sm-8">
-                                                    <span class="h4 text-success">{{ facture.montant }}€</span>
+                                                    <span class="h5">{{ facture.montant_ht }}€</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong class="text-muted">
+                                                        <i class="fas fa-percentage"></i> Taux TVA :
+                                                    </strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <span class="h5">{{ facture.taux_tva }}%</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong class="text-muted">
+                                                        <i class="fas fa-calculator"></i> Montant TVA :
+                                                    </strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <span class="h5 text-warning">{{ facture.montant_tva }}€</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-sm-4">
+                                                    <strong class="text-muted">
+                                                        <i class="fas fa-euro-sign"></i> Montant TTC :
+                                                    </strong>
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <span class="h4 text-success">{{ facture.montant_ttc }}€</span>
                                                 </div>
                                             </div>
 

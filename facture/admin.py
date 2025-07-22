@@ -16,7 +16,7 @@ class CategorieAdmin(admin.ModelAdmin):
 
 @admin.register(Facture)
 class FactureAdmin(admin.ModelAdmin):
-    list_display = ['numero', 'date', 'montant', 'client', 'categorie', 'paye']
+    list_display = ['numero', 'date', 'montant_ht', 'montant_ttc', 'client', 'categorie', 'paye']
     list_filter = ['date', 'categorie', 'paye', 'client']
     search_fields = ['numero', 'client__nom']
     date_hierarchy = 'date'

@@ -44,16 +44,21 @@
                                                         <div>
                                                             <strong>{{ facture.numero }}</strong><br />
                                                             <small class="text-muted">
-                                                                {{ facture.date }} - {{ facture.montant }}€
+                                                                {{ facture.date }} -
+                                                                <span class="fw-bold">{{ facture.montant_ttc }}€</span>
                                                                 <br />
                                                                 <i class="fas fa-user"></i> {{ facture.client.nom }}
                                                                 <br />
+                                                                {% if facture.categorie %}
                                                                 <span
                                                                     class="badge"
                                                                     style="background-color: {{ facture.categorie.couleur }}; color: white;"
                                                                 >
                                                                     {{ facture.categorie.nom }}
                                                                 </span>
+                                                                {% else %}
+                                                                <span class="badge bg-secondary"> Autres </span>
+                                                                {% endif %}
                                                             </small>
                                                         </div>
                                                         <div class="text-end">

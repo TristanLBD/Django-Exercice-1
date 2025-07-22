@@ -51,14 +51,49 @@
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="{{ form.montant.id_for_label }}" class="form-label">
-                                            <i class="fas fa-euro-sign"></i> Montant (€)
+                                        <label for="{{ form.montant_ht.id_for_label }}" class="form-label">
+                                            <i class="fas fa-euro-sign"></i> Montant HT (€)
                                         </label>
-                                        {{ form.montant }} {% if form.montant.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.montant.errors.0 }}</div>
+                                        {{ form.montant_ht }} {% if form.montant_ht.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.montant_ht.errors.0 }}</div>
                                         {% endif %}
                                     </div>
 
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.taux_tva.id_for_label }}" class="form-label">
+                                            <i class="fas fa-percentage"></i> Taux TVA (%)
+                                        </label>
+                                        {{ form.taux_tva }} {% if form.taux_tva.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.taux_tva.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Calcul automatique affiché -->
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <div class="row text-center">
+                                                <div class="col-md-4">
+                                                    <strong>Montant HT :</strong><br />
+                                                    <span id="montant-ht-display">0.00 €</span>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <strong>TVA :</strong><br />
+                                                    <span id="montant-tva-display">0.00 €</span>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <strong>Montant TTC :</strong><br />
+                                                    <span id="montant-ttc-display" class="text-success fw-bold"
+                                                        >0.00 €</span
+                                                    >
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.client.id_for_label }}" class="form-label">
                                             <i class="fas fa-user"></i> Client *
@@ -67,9 +102,7 @@
                                         <div class="invalid-feedback d-block">{{ form.client.errors.0 }}</div>
                                         {% endif %}
                                     </div>
-                                </div>
 
-                                <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.categorie.id_for_label }}" class="form-label">
                                             <i class="fas fa-tag"></i> Catégorie
@@ -78,9 +111,11 @@
                                         <div class="invalid-feedback d-block">{{ form.categorie.errors.0 }}</div>
                                         {% endif %}
                                     </div>
+                                </div>
 
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-check mt-4">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <div class="form-check">
                                             {{ form.paye }}
                                             <label class="form-check-label" for="{{ form.paye.id_for_label }}">
                                                 <i class="fas fa-check-circle"></i> Facture payée
@@ -108,5 +143,27 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Script pour calcul automatique des montants -->
+        <script>
+            function calculerMontants() {
+                const montantHT = parseFloat(document.getElementById("{{ form.montant_ht.id_for_label }}").value) || 0;
+                const tauxTVA = parseFloat(document.getElementById("{{ form.taux_tva.id_for_label }}").value) || 0;
+
+                const montantTVA = (montantHT * tauxTVA) / 100;
+                const montantTTC = montantHT + montantTVA;
+
+                document.getElementById("montant-ht-display").textContent = montantHT.toFixed(2) + " €";
+                document.getElementById("montant-tva-display").textContent = montantTVA.toFixed(2) + " €";
+                document.getElementById("montant-ttc-display").textContent = montantTTC.toFixed(2) + " €";
+            }
+
+            // Écouter les changements sur les champs
+            document.getElementById("{{ form.montant_ht.id_for_label }}").addEventListener("input", calculerMontants);
+            document.getElementById("{{ form.taux_tva.id_for_label }}").addEventListener("input", calculerMontants);
+
+            // Calculer au chargement de la page
+            document.addEventListener("DOMContentLoaded", calculerMontants);
+        </script>
     </body>
 </html>
