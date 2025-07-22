@@ -15,10 +15,12 @@ Les tests couvrent :
 - Validation des données
 - Navigation et interface utilisateur
 """
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from decimal import Decimal
-from .models import Facture, Client, Categorie
+from .models import Facture, Client, Categorie, LogCreationFacture
+from .middleware import LogCreationFactureMiddleware
 
 class FactureModelTest(TestCase):
     """
@@ -133,6 +135,197 @@ class FactureModelTest(TestCase):
         self.assertEqual(facture2.montant_tva, Decimal("0.00"))
         self.assertEqual(facture2.montant_ttc, Decimal("150.00"))
 
+
+class LogCreationFactureModelTest(TestCase):
+    """
+    Tests pour le modèle LogCreationFacture.
+
+    Vérifie la création et la gestion des logs de création de factures.
+    """
+
+    def setUp(self):
+        """
+        Création des données de test pour les logs.
+        """
+        # Créer un client de test
+        self.client = Client.objects.create(
+            nom="Test Client",
+            email="test@example.com"
+        )
+
+        # Créer une catégorie de test
+        self.categorie = Categorie.objects.create(
+            nom="Test Category",
+            couleur="#FF0000"
+        )
+
+        # Créer une facture de test
+        self.facture = Facture.objects.create(
+            numero="FAC-TEST-001",
+            date="2024-01-01",
+            montant_ht=Decimal("100.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+    def test_creation_log_facture(self):
+        """
+        Test de création d'un log de création de facture.
+        """
+        log = LogCreationFacture.objects.create(
+            facture=self.facture,
+            ip_utilisateur="127.0.0.1",
+            user_agent="Mozilla/5.0 Test Browser",
+            methode_creation="formulaire_web",
+            details_supplementaires={"utilisateur": "test_user"}
+        )
+
+        # Vérifier que le log a été créé
+        self.assertEqual(log.facture, self.facture)
+        self.assertEqual(log.ip_utilisateur, "127.0.0.1")
+        self.assertEqual(log.user_agent, "Mozilla/5.0 Test Browser")
+        self.assertEqual(log.methode_creation, "formulaire_web")
+        self.assertEqual(log.details_supplementaires["utilisateur"], "test_user")
+
+    def test_representation_string_log(self):
+        """
+        Test de la méthode __str__ du modèle LogCreationFacture.
+        """
+        log = LogCreationFacture.objects.create(
+            facture=self.facture,
+            ip_utilisateur="127.0.0.1",
+            methode_creation="formulaire_web"
+        )
+
+        expected_string = f"Log création {self.facture.numero} - {log.date_creation}"
+        self.assertIn("Log création FAC-TEST-001", str(log))
+
+    def test_log_avec_details_json(self):
+        """
+        Test de création d'un log avec des détails JSON complexes.
+        """
+        details = {
+            "utilisateur": "admin",
+            "session_id": "abc123",
+            "navigateur": "Chrome",
+            "actions": ["validation", "sauvegarde"]
+        }
+
+        log = LogCreationFacture.objects.create(
+            facture=self.facture,
+            ip_utilisateur="192.168.1.1",
+            methode_creation="api_rest",
+            details_supplementaires=details
+        )
+
+        # Vérifier que les détails JSON sont correctement sauvegardés
+        self.assertEqual(log.details_supplementaires["utilisateur"], "admin")
+        self.assertEqual(log.details_supplementaires["actions"], ["validation", "sauvegarde"])
+
+class LogCreationFactureMiddlewareTest(TestCase):
+    """
+    Tests pour le middleware LogCreationFactureMiddleware.
+
+    Vérifie que le middleware intercepte correctement les créations de factures
+    et crée les logs appropriés.
+    """
+
+    def setUp(self):
+        """
+        Configuration des données de test pour le middleware.
+        """
+        self.factory = RequestFactory()
+
+        # Créer un client de test
+        self.client = Client.objects.create(
+            nom="Test Client",
+            email="test@example.com"
+        )
+
+        # Créer une catégorie de test
+        self.categorie = Categorie.objects.create(
+            nom="Test Category",
+            couleur="#FF0000"
+        )
+
+    def _create_middleware(self):
+        """
+        Crée une instance du middleware pour les tests.
+        """
+        def dummy_get_response(request):
+            return HttpResponseRedirect('/factures/')
+
+        return LogCreationFactureMiddleware(dummy_get_response)
+
+    def test_middleware_detecte_creation_facture(self):
+        """
+        Test que le middleware détecte correctement les requêtes de création de facture.
+        """
+        middleware = self._create_middleware()
+        # Test avec URL de création
+        request = self.factory.post('/factures/creer/')
+        self.assertTrue('/factures/creer/' in request.path)
+
+        # Test avec URL différente
+        request = self.factory.post('/factures/')
+        self.assertFalse('/factures/creer/' in request.path)
+
+    def test_middleware_recupere_ip_client(self):
+        """
+        Test de la récupération de l'IP client avec différents scénarios.
+        """
+        middleware = self._create_middleware()
+        # Test avec IP directe
+        request = self.factory.post('/factures/creer/')
+        request.META['REMOTE_ADDR'] = '192.168.1.100'
+        ip = middleware._get_client_ip(request)
+        self.assertEqual(ip, '192.168.1.100')
+
+        # Test avec proxy (X-Forwarded-For)
+        request = self.factory.post('/factures/creer/')
+        request.META['HTTP_X_FORWARDED_FOR'] = '10.0.0.1, 192.168.1.1'
+        request.META['REMOTE_ADDR'] = '127.0.0.1'
+        ip = middleware._get_client_ip(request)
+        self.assertEqual(ip, '10.0.0.1')
+
+    def test_middleware_creation_log_apres_facture(self):
+        """
+        Test que le middleware crée un log après la création d'une facture.
+        """
+        middleware = self._create_middleware()
+        # Créer une facture
+        facture = Facture.objects.create(
+            numero="FAC-MIDDLEWARE-001",
+            date="2024-01-01",
+            montant_ht=Decimal("100.00"),
+            taux_tva=Decimal("20.00"),
+            client=self.client,
+            categorie=self.categorie,
+            paye=False
+        )
+
+        # Simuler une requête POST avec succès
+        request = self.factory.post('/factures/creer/')
+        request.META['REMOTE_ADDR'] = '127.0.0.1'
+        request.META['HTTP_USER_AGENT'] = 'Test Browser'
+
+        # Simuler une réponse de succès (redirection 302)
+        response = HttpResponseRedirect('/factures/')
+
+        # Traiter la réponse
+        middleware.process_response(request, response)
+
+        # Vérifier qu'un log a été créé
+        logs = LogCreationFacture.objects.filter(facture=facture)
+        self.assertEqual(logs.count(), 1)
+
+        log = logs.first()
+        self.assertEqual(log.ip_utilisateur, '127.0.0.1')
+        self.assertEqual(log.user_agent, 'Test Browser')
+        self.assertEqual(log.methode_creation, 'formulaire_web')
+
     def test_facture_sans_categorie(self):
         """Test de création d'une facture sans catégorie (sera assignée à 'Autres')"""
         facture = Facture.objects.create(
@@ -180,7 +373,8 @@ class FactureModelTest(TestCase):
         )
 
         # Vérifier que la représentation string inclut le numéro et le nom du client
-        self.assertEqual(str(facture), "FAC-2024-007 - Jean Dupont")
+        # Vérifier que la représentation string inclut le numéro et le nom du client
+        self.assertEqual(str(facture), "FAC-2024-007 - Test Client")
 
     def test_modification_facture_recalcule_tva(self):
         """Test que la modification d'une facture recalcule automatiquement la TVA"""

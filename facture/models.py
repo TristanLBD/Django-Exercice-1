@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+
 
 class Categorie(models.Model):
     """
@@ -74,3 +76,27 @@ class Facture(models.Model):
         verbose_name = "Facture"
         verbose_name_plural = "Factures"
         ordering = ['-date', '-id']
+
+
+class LogCreationFacture(models.Model):
+    """
+    Modèle pour enregistrer les logs de création de factures.
+    Utilisé par le middleware pour tracer toutes les créations de factures.
+    """
+    facture = models.ForeignKey(Facture, on_delete=models.CASCADE, verbose_name="Facture créée")
+    date_creation = models.DateTimeField(auto_now_add=True, verbose_name="Date de création du log")
+    ip_utilisateur = models.GenericIPAddressField(verbose_name="Adresse IP de l'utilisateur")
+    user_agent = models.TextField(blank=True, null=True, verbose_name="User Agent")
+    methode_creation = models.CharField(max_length=50, verbose_name="Méthode de création",
+                                       help_text="Ex: formulaire web, API, import, etc.")
+    details_supplementaires = models.JSONField(blank=True, null=True,
+                                              verbose_name="Détails supplémentaires",
+                                              help_text="Informations complémentaires en JSON")
+
+    def __str__(self):
+        return f"Log création {self.facture.numero} - {self.date_creation}"
+
+    class Meta:
+        verbose_name = "Log de création de facture"
+        verbose_name_plural = "Logs de création de factures"
+        ordering = ['-date_creation']

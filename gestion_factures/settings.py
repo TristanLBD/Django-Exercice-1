@@ -54,13 +54,14 @@ INSTALLED_APPS = [
 # Les middlewares sont exécutés dans l'ordre pour chaque requête
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',        # Sécurité (HTTPS, etc.)
-    'django.contrib.sessions.middleware.SessionMiddleware', # Gestion des sessions
-    'django.middleware.common.CommonMiddleware',            # Middleware commun
-    'django.middleware.csrf.CsrfViewMiddleware',            # Protection CSRF
-    'django.contrib.auth.middleware.AuthenticationMiddleware', # Authentification
-    'django.contrib.messages.middleware.MessageMiddleware', # Messages flash
-    'django.middleware.clickjacking.XFrameOptionsMiddleware', # Protection clickjacking
+    'django.middleware.security.SecurityMiddleware',            # Sécurité (HTTPS, etc.)
+    'django.contrib.sessions.middleware.SessionMiddleware',     # Gestion des sessions
+    'django.middleware.common.CommonMiddleware',                # Middleware commun
+    'django.middleware.csrf.CsrfViewMiddleware',                # Protection CSRF
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Authentification
+    'django.contrib.messages.middleware.MessageMiddleware',     # Messages flash
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',   # Protection clickjacking
+    'facture.middleware.LogCreationFactureMiddleware',          # Log des créations de factures
 ]
 
 # Configuration des URLs racines

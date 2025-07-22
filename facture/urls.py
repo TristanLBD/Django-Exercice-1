@@ -34,4 +34,7 @@ urlpatterns = [
     path('categories/<int:pk>/', views.DetailCategorieView.as_view(), name='detail_categorie'),  # Détails d'une catégorie
     path('categories/<int:pk>/modifier/', views.ModifierCategorieView.as_view(), name='modifier_categorie'), # Formulaire de modification
     path('categories/<int:pk>/supprimer/', views.SupprimerCategorieView.as_view(), name='supprimer_categorie'), # Confirmation de suppression
+
+    # ===== VUE DE TEST MIDDLEWARE =====
+    path('test-middleware/', views.test_middleware_view, name='test_middleware'),                # Vue de test du middleware
 ]

@@ -234,3 +234,21 @@ class DetailFactureView(DetailView):
     model = Facture
     template_name = 'factures/detail.html'
     context_object_name = 'facture'
+
+
+def test_middleware_view(request):
+    """
+    Vue de test pour vérifier le fonctionnement du middleware.
+    Affiche les logs de création de factures récents.
+    """
+    from .models import LogCreationFacture
+
+    # Récupérer les 10 derniers logs
+    logs = LogCreationFacture.objects.select_related('facture', 'facture__client').order_by('-date_creation')[:10]
+
+    context = {
+        'logs': logs,
+        'total_logs': LogCreationFacture.objects.count(),
+    }
+
+    return render(request, 'test_middleware.html', context)
