@@ -36,3 +36,8 @@ class FactureForm(forms.ModelForm):
             'categorie': forms.Select(attrs={'class': 'form-control'}),
             'paye': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ajouter une option vide pour permettre de ne pas sélectionner de catégorie
+        self.fields['categorie'].empty_label = "Aucune catégorie (sera assignée à 'Autres')"

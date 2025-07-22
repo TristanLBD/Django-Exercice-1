@@ -117,10 +117,40 @@ class CreerFactureView(CreateView):
     template_name = 'factures/creer.html'
     success_url = reverse_lazy('liste_factures')
 
+    def form_valid(self, form):
+        # Sauvegarder d'abord la facture
+        facture = form.save(commit=False)
+
+        # Si aucune catégorie n'est sélectionnée, assigner "Autres"
+        if not facture.categorie:
+            categorie_autres, created = Categorie.objects.get_or_create(
+                nom="Autres",
+                defaults={'couleur': '#6c757d'}  # Couleur grise par défaut
+            )
+            facture.categorie = categorie_autres
+
+        facture.save()
+        return super().form_valid(form)
+
 class ModifierFactureView(UpdateView):
     model = Facture
     form_class = FactureForm
     template_name = 'factures/modifier.html'
+
+    def form_valid(self, form):
+        # Sauvegarder d'abord la facture
+        facture = form.save(commit=False)
+
+        # Si aucune catégorie n'est sélectionnée, assigner "Autres"
+        if not facture.categorie:
+            categorie_autres, created = Categorie.objects.get_or_create(
+                nom="Autres",
+                defaults={'couleur': '#6c757d'}  # Couleur grise par défaut
+            )
+            facture.categorie = categorie_autres
+
+        facture.save()
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy('detail_facture', kwargs={'pk': self.object.pk})

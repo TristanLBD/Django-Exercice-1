@@ -72,8 +72,7 @@
                                                         href="{% url 'detail_client' facture.client.pk %}"
                                                         class="text-decoration-none"
                                                     >
-                                                        <i class="fas fa-user text-primary"></i> {{ facture.client.nom
-                                                        }}
+                                                        <i class="fas fa-user text-primary"></i> {{facture.client.nom}}
                                                     </a>
                                                 </div>
                                             </div>
@@ -85,11 +84,17 @@
                                                     </strong>
                                                 </div>
                                                 <div class="col-sm-8">
+                                                    {% if facture.categorie %}
                                                     <span
                                                         class="badge rounded-pill me-2"
                                                         style="background-color: {{ facture.categorie.couleur }}; width: 20px; height: 20px;"
                                                     ></span>
-                                                    {{ facture.categorie.nom }}
+                                                    {{ facture.categorie.nom }} {% else %}
+                                                    <span
+                                                        class="badge rounded-pill me-2 bg-secondary"
+                                                        style="width: 20px; height: 20px"
+                                                    ></span>
+                                                    Autres {% endif %}
                                                 </div>
                                             </div>
 

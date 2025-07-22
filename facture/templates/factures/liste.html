@@ -92,11 +92,16 @@
                                                     <small>{{ facture.client.nom }}</small>
                                                 </p>
                                                 <p class="mb-3">
-                                                    <span
-                                                        class="badge rounded-pill me-1"
-                                                        style="background-color: {{ facture.categorie.couleur }}; width: 12px; height: 12px;"
-                                                    ></span>
-                                                    <small class="text-muted">{{ facture.categorie.nom }}</small>
+                                                    {% if facture.categorie %}
+                                                        <span
+                                                            class="badge rounded-pill me-1"
+                                                            style="background-color: {{ facture.categorie.couleur }}; width: 12px; height: 12px;"
+                                                        ></span>
+                                                        <small class="text-muted">{{ facture.categorie.nom }}</small>
+                                                    {% else %}
+                                                        <span class="badge rounded-pill me-1 bg-secondary" style="width: 12px; height: 12px;"></span>
+                                                        <small class="text-muted">Autres</small>
+                                                    {% endif %}
                                                 </p>
                                             </div>
 

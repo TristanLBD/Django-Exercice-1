@@ -23,7 +23,7 @@ class Facture(models.Model):
     date = models.DateField()
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, verbose_name="Client")
-    categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE)
+    categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE, null=True, blank=True)
     paye = models.BooleanField(default=False, verbose_name="Payée")
     # ADD TAX & TTC
 
